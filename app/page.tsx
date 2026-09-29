@@ -1,69 +1,74 @@
-import { supabase } from "@/lib/supabase";
+import { redirect } from "next/navigation";
+import { createClient } from "@/lib/supabase/server";
+import NavBar from "@/components/NavBar";
 
 export default async function Home() {
-    const { data: greetings, error } = await supabase
+    const supabase = await createClient();
+
+    const {
+        data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+        redirect("/login");
+    }
+
+    const { data: profile } = await supabase
+        .from("profiles")
+        .select("first_name, last_name, avatar_url")
+        .eq("id", user.id)
+        .single();
+
+    if (!profile?.first_name || !profile?.last_name) {
+        redirect("/profile?onboarding=1");
+    }
+
+    const { data: rows, error } = await supabase
         .from("Hellooooo")
         .select("*")
         .order("id", { ascending: true });
 
     if (error) {
-        return (
-            <main className="min-h-screen bg-zinc-50 p-8">
-                <div className="mx-auto max-w-3xl">
-                    <h1 className="text-4xl font-bold text-black">
-                        Greetings Around the World
-                    </h1>
-
-                    <p className="mt-4 text-red-600">
-                        Error loading greetings: {error.message}
-                    </p>
-                </div>
-            </main>
-        );
+        return <p>Error: {error.message}</p>;
     }
 
+    const cellStyle = { border: "1px solid black", padding: "10px" };
+
     return (
-        <main className="min-h-screen bg-zinc-50 p-8">
-            <div className="mx-auto max-w-4xl">
-                <h1 className="mb-8 text-4xl font-bold text-black">
-                    Greetings Around the World
-                </h1>
+        <main>
+            <NavBar />
+            <div style={{ padding: "40px" }}>
+                <h1>Greetings</h1>
 
-                <div className="overflow-hidden rounded-lg bg-white shadow">
-                    <table className="w-full">
-                        <thead className="bg-zinc-100">
-                        <tr>
-                            <th className="px-6 py-4 text-left font-semibold text-black">
-                                ID
-                            </th>
-                            <th className="px-6 py-4 text-left font-semibold text-black">
-                                Greeting
-                            </th>
-                            <th className="px-6 py-4 text-left font-semibold text-black">
-                                Author
-                            </th>
+                <p>
+                    Signed in as {profile.first_name} {profile.last_name} ({user.email})
+                </p>
+
+                <table
+                    style={{
+                        borderCollapse: "collapse",
+                        width: "100%",
+                        marginTop: "20px",
+                    }}
+                >
+                    <thead>
+                    <tr>
+                        <th style={cellStyle}>ID</th>
+                        <th style={cellStyle}>Title</th>
+                        <th style={cellStyle}>Author</th>
+                    </tr>
+                    </thead>
+
+                    <tbody>
+                    {rows?.map((row) => (
+                        <tr key={row.id}>
+                            <td style={cellStyle}>{row.id}</td>
+                            <td style={cellStyle}>{row.title}</td>
+                            <td style={cellStyle}>{row.author}</td>
                         </tr>
-                        </thead>
-
-                        <tbody>
-                        {greetings?.map((greeting) => (
-                            <tr key={greeting.id} className="border-t">
-                                <td className="px-6 py-4 text-black">
-                                    {greeting.id}
-                                </td>
-
-                                <td className="px-6 py-4 font-medium text-black">
-                                    {greeting.title}
-                                </td>
-
-                                <td className="px-6 py-4 text-zinc-600">
-                                    {greeting.author}
-                                </td>
-                            </tr>
-                        ))}
-                        </tbody>
-                    </table>
-                </div>
+                    ))}
+                    </tbody>
+                </table>
             </div>
         </main>
     );
