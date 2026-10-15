@@ -1,7 +1,11 @@
 
 import Link from "next/link";
+import Image from "next/image";
 import { createClient } from "@/lib/supabase/server";
 import NavBar from "@/components/NavBar";
+import HomeSignOutButton from "@/components/HomeSignOutButton";
+
+export const dynamic = "force-dynamic";
 
 export default async function Home() {
     const supabase = await createClient();
@@ -23,124 +27,72 @@ export default async function Home() {
     }
 
     return (
-        <main>
+        <main className="min-h-screen bg-[#F5D5DF] text-[#593B32]">
             <NavBar />
 
-            <div
-                style={{
-                    maxWidth: "900px",
-                    margin: "80px auto",
-                    padding: "0 24px",
-                    textAlign: "center",
-                }}
-            >
-                <p style={{ fontSize: "40px", marginBottom: "12px" }}>
-                    🗽✨
-                </p>
+            <div className="mx-auto max-w-5xl px-5 pb-16 pt-10 md:pt-14">
 
-                <h1
-                    style={{
-                        fontSize: "48px",
-                        fontWeight: "bold",
-                        marginBottom: "20px",
-                    }}
-                >
-                    NYC Unlocked
-                </h1>
+                {/* Heading */}
+                <div className="mb-8 text-center">
+                    <h1 className="text-5xl font-bold tracking-tight md:text-7xl">
+                        NYC Unlocked
+                    </h1>
 
-                <h2
-                    style={{
-                        fontSize: "26px",
-                        fontWeight: "normal",
-                        marginBottom: "24px",
-                    }}
-                >
-                    Discover New York City, Your Way.
-                </h2>
+                    {user && (
+                        <p className="mt-4 text-lg font-medium text-[#765044]">
+                            Welcome back{firstName ? `, ${firstName}` : ""}! ♡
+                        </p>
+                    )}
 
-                {user && (
-                    <p style={{ fontSize: "18px", marginBottom: "20px" }}>
-                        Welcome back{firstName ? `, ${firstName}` : ""}! 👋
+                    <p className="mx-auto mt-4 max-w-md text-sm leading-6 text-[#765044] md:text-base">
+                        Your interests. Your city. Your next adventure.
                     </p>
-                )}
+                </div>
 
-                <p
-                    style={{
-                        fontSize: "18px",
-                        color: "#555",
-                        lineHeight: "1.8",
-                        maxWidth: "650px",
-                        margin: "0 auto 36px",
-                    }}
-                >
-                    Whether you have two hours between classes, a free
-                    afternoon, or an entire day to explore, NYC Unlocked
-                    helps you discover personalized experiences based on
-                    your interests, budget, and available time.
-                </p>
+                {/* NYC photograph */}
+                <div className="overflow-hidden rounded-3xl border-4 border-[#F5EBDD] shadow-xl">
+                    <div className="relative h-64 w-full md:h-[420px]">
+                        <Image
+                            src="/themes/nyc.jpg"
+                            alt="New York City"
+                            fill
+                            priority
+                            sizes="(max-width: 768px) 100vw, 1024px"
+                            className="object-cover"
+                        />
+                    </div>
+                </div>
 
-                <div
-                    style={{
-                        display: "flex",
-                        justifyContent: "center",
-                        gap: "16px",
-                        flexWrap: "wrap",
-                    }}
-                >
+                {/* Main buttons */}
+                <div className="mx-auto mt-8 flex max-w-xl flex-col items-center gap-3">
+
                     <Link
                         href={user ? "/generate" : "/login"}
-                        style={{
-                            backgroundColor: "#2563eb",
-                            color: "white",
-                            padding: "14px 24px",
-                            borderRadius: "10px",
-                            textDecoration: "none",
-                            fontWeight: "bold",
-                        }}
+                        className="w-full rounded-2xl bg-[#593B32] px-6 py-4 text-center text-base font-bold text-[#FFF8EE] transition hover:bg-[#765044] sm:min-w-72"
                     >
-                        ✨ Generate My Experience
+                        Find My NYC Experience →
                     </Link>
 
                     <Link
                         href="/explore"
-                        style={{
-                            backgroundColor: "#f3f4f6",
-                            color: "#111",
-                            padding: "14px 24px",
-                            borderRadius: "10px",
-                            textDecoration: "none",
-                            fontWeight: "bold",
-                            border: "1px solid #ddd",
-                        }}
+                        className="w-full rounded-2xl border border-[#593B32] bg-[#F5EBDD] px-6 py-4 text-center text-sm font-semibold text-[#593B32] transition hover:bg-[#F9DFE4] sm:min-w-72"
                     >
-                        🗺️ Explore Experiences
+                        Explore Experiences
                     </Link>
-                </div>
 
-                {!user && (
-                    <p style={{ marginTop: "24px", color: "#666" }}>
-                        Sign in with Google to create and vote on experiences.
-                    </p>
-                )}
-
-                <div
-                    style={{
-                        marginTop: "80px",
-                        padding: "30px",
-                        backgroundColor: "#f9fafb",
-                        borderRadius: "16px",
-                    }}
-                >
-                    <h2 style={{ fontSize: "24px", marginBottom: "16px" }}>
-                        Your City. Your Interests. Your Adventure.
-                    </h2>
-
-                    <p style={{ color: "#555", lineHeight: "1.8" }}>
-                        Tell us what you're looking for, receive an
-                        AI-generated NYC experience, and discover adventures
-                        shared by other explorers. Vote for your favorites
-                        and help the community find its next adventure!
-                    </p>
+                    {/* Sign In / Sign Out */}
+                    <div className="mt-5">
+                        {user ? (
+                            <HomeSignOutButton />
+                        ) : (
+                            <Link
+                                href="/login"
+                                className="inline-block rounded-xl border border-[#593B32] px-7 py-2.5 text-sm font-semibold text-[#593B32] transition hover:bg-[#F9DFE4]"
+                            >
+                                Sign In with Google
+                            </Link>
+                        )}
+                    </div>
                 </div>
             </div>
         </main>

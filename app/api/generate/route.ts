@@ -9,7 +9,6 @@ const ai = new GoogleGenAI({
 
 export async function POST(request: NextRequest) {
     try {
-        // Step 1: Identify the logged-in user
         const supabase = await createClient();
 
         const {
@@ -24,7 +23,6 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        // Step 2: Read the user's request
         const { prompt } = await request.json();
 
         if (
@@ -38,45 +36,78 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        // Step 3: Generate an NYC experience
         const response = await ai.models.generateContent({
             model: "gemini-3.5-flash-lite",
             contents: `
-You are NYC Unlocked, a creative and helpful New York City
-experience guide.
+You are NYC Unlocked, a helpful New York City discovery guide.
 
-Your audience includes college students, people new to NYC,
-and anyone who wants to explore the city.
-
-Create a personalized NYC experience based on this request:
+The user wants:
 "${prompt}"
 
-Provide:
-1. A creative title for the experience.
-2. Two or three specific activities or places in NYC.
-3. An estimated budget.
-4. An estimated duration.
-5. A short explanation of why this experience matches
-   the user's request.
+Recommend 3 or 4 REAL, specific places in New York City
+that match their interests, time, and budget.
 
-Make the recommendations engaging, practical, and
-budget-conscious when appropriate.
+Return ONLY a valid JSON object in this exact structure:
 
-Do not invent exact opening hours or prices. If details
-may change, encourage the user to verify them.
+{
+  "title": "A specific neighborhood or destination name",
+  "description": "One short sentence explaining the experience.",
+  "budget": "Estimated total budget, e.g. $20–$30",
+  "duration": "Estimated duration, e.g. 2–3 hours",
+  "neighborhood": "NYC neighborhood",
+  "stops": [
+    {
+      "name": "Real place name",
+      "description": "One short sentence about what to do there.",
+      "cost": "Estimated cost or Free",
+      "tip": "One useful practical tip."
+    }
+  ]
+}
+
+RULES:
+- Return ONLY JSON. No markdown fences or introductory text.
+- Use real NYC places, not invented businesses.
+- Keep all descriptions brief and useful.
+- Respect the user's stated budget and available time.
+- Do not invent exact opening hours or exact prices.
+- If the user requests a specific neighborhood, prioritize it.
+- Make the title specific, not generic marketing language.
+- Do not include more than 4 stops.
 `,
+            config: {
+                responseMimeType: "application/json",
+            },
         });
 
-        const content = response.text;
+        const rawContent = response.text;
 
-        if (!content) {
+        if (!rawContent) {
             return NextResponse.json(
                 { error: "Gemini did not return a response." },
                 { status: 502 }
             );
         }
 
-        // Step 4: Save the experience in Supabase
+        // Validate the response before storing it.
+        const experience = JSON.parse(rawContent);
+
+        if (
+            !experience ||
+            typeof experience.title !== "string" ||
+            typeof experience.description !== "string" ||
+            !Array.isArray(experience.stops) ||
+            experience.stops.length === 0
+        ) {
+            return NextResponse.json(
+                { error: "The generated experience had an unexpected format. Please try again." },
+                { status: 502 }
+            );
+        }
+
+        // Keep using the existing text column in Supabase.
+        const content = JSON.stringify(experience);
+
         const { data: savedGeneration, error: saveError } = await supabase
             .from("generations")
             .insert({
@@ -96,7 +127,6 @@ may change, encourage the user to verify them.
             );
         }
 
-        // Step 5: Return the saved experience
         return NextResponse.json({
             id: savedGeneration.id,
             content,
@@ -110,4 +140,3 @@ may change, encourage the user to verify them.
         );
     }
 }
-
