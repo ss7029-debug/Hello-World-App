@@ -31,7 +31,6 @@ export default async function Home() {
             <NavBar />
 
             <div className="mx-auto max-w-5xl px-5 pb-16 pt-10 md:pt-14">
-
                 {/* Heading */}
                 <div className="mb-8 text-center">
                     <h1 className="text-5xl font-bold tracking-tight md:text-7xl">
@@ -65,7 +64,6 @@ export default async function Home() {
 
                 {/* Main buttons */}
                 <div className="mx-auto mt-8 flex max-w-xl flex-col items-center gap-3">
-
                     <Link
                         href={user ? "/generate" : "/login"}
                         className="w-full rounded-2xl bg-[#593B32] px-6 py-4 text-center text-base font-bold text-[#FFF8EE] transition hover:bg-[#765044] sm:min-w-72"
@@ -78,6 +76,13 @@ export default async function Home() {
                         className="w-full rounded-2xl border border-[#593B32] bg-[#F5EBDD] px-6 py-4 text-center text-sm font-semibold text-[#593B32] transition hover:bg-[#F9DFE4] sm:min-w-72"
                     >
                         Explore Experiences
+                    </Link>
+
+                    <Link
+                        href="/community-ratings"
+                        className="w-full rounded-2xl border border-[#593B32] bg-[#FFF8EE] px-6 py-4 text-center text-sm font-semibold text-[#593B32] transition hover:bg-[#F9DFE4] sm:min-w-72"
+                    >
+                        ♡ View Community Ratings
                     </Link>
 
                     {/* Sign In / Sign Out */}
